@@ -27,6 +27,7 @@ class MainViewModel : ViewModel() {
     private fun collectFlow() {
         viewModelScope.launch {
             countDownFlow.collect { time ->
+                delay(1500L)
                 println("The current time is: $time")
             }
         }
