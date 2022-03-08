@@ -3,14 +3,13 @@ package edu.xfolex.flows
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
 
-    val countDownFlow = flow<Int> {
-        val startValue = 100
+    val countDownFlow = flow {
+        val startValue = 10
         var currentValue = startValue
         emit(startValue)
         while (currentValue > 0) {
@@ -26,9 +25,9 @@ class MainViewModel : ViewModel() {
 
     private fun collectFlow() {
         viewModelScope.launch {
-            countDownFlow.collect { time ->
+            countDownFlow.collectLatest { time ->
                 delay(1500L)
-                println("The current time is: $time")
+                println("The current time is $time")
             }
         }
     }
