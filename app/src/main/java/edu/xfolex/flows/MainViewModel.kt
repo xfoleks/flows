@@ -19,91 +19,36 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    private val _stateFlow = MutableStateFlow(0)
+    val stateFlow = _stateFlow.asStateFlow()
+
+    private val _sharedFlow = MutableSharedFlow<Int>()
+    val sharedFlow = _sharedFlow.asSharedFlow()
+
     init {
-        collectFlow()
-        reduceFlow()
-        foldFlow()
-        flattenFlow()
-        bufferFlow()
-    }
-
-    private fun collectFlow() {
         viewModelScope.launch {
-            val count = countDownFlow
-                .filter { time ->
-                    time % 2 == 0
-                }
-                .map { time ->
-                    time * time
-                }
-                .onEach { time ->
-                    println(time)
-                }
-                .count {
-                    it % 2 == 0
-                }
-            println("The count is: $count")
-        }
-    }
-
-    private fun reduceFlow() {
-        viewModelScope.launch {
-            val reduceResult = countDownFlow
-                .reduce { accumulator, value ->
-                    accumulator + value
-                }
-            println("The count is: $reduceResult")
-        }
-    }
-
-    private fun foldFlow() {
-        viewModelScope.launch {
-            val foldResult = countDownFlow
-                .fold(100) { accumulator, value ->
-                    accumulator + value
-                }
-            println("The result is: $foldResult")
-        }
-    }
-
-    private fun flattenFlow() {
-        val flowOne = flow {
-            emit(1)
-            delay(500L)
-            emit(2)
-        }
-
-        viewModelScope.launch {
-            flowOne.flatMapConcat { value ->
-                flow {
-                    emit(value + 1)
-                    delay(500L)
-                    emit(value + 2)
-                }
-            }.collect { value ->
-                println("The value is: $value")
+            sharedFlow.collect {
+                delay(2000L)
+                println("FIRST FLOW: The received number is $it")
             }
         }
-    }
-
-    private fun bufferFlow() {
-        val flow = flow {
-            delay(200L)
-            emit("Appetizer")
-            delay(1000L)
-            emit("Main dish")
-            delay(100L)
-            emit("Dessert")
-        }
 
         viewModelScope.launch {
-            flow.onEach {
-                println("$it is delivered")
-            } .collect {
-                println("FLOW: Now eating $it")
-                delay(1500L)
-                println("FLOW: Finished eating $it" )
+            sharedFlow.collect {
+                delay(3000L)
+                println("SECOND FLOW: The received number is $it")
             }
+        }
+        squaredNumber(3)
+    }
+
+    fun increaseCounter() {
+        _stateFlow.value += 1
+    }
+
+    private fun squaredNumber(number: Int) {
+        viewModelScope.launch {
+            _sharedFlow.emit(number * number)
         }
     }
 }
