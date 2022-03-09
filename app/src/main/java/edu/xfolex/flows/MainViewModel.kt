@@ -2,14 +2,17 @@ package edu.xfolex.flows
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
+class MainViewModel(
+    private val dispatchers: DispatcherProvider
+) : ViewModel() {
 
     val countDownFlow = flow {
-        val startValue = 10
+        val startValue = 5
         var currentValue = startValue
         emit(startValue)
         while (currentValue > 0) {
@@ -17,7 +20,7 @@ class MainViewModel : ViewModel() {
             currentValue--
             emit(currentValue)
         }
-    }
+    }.flowOn(dispatchers.main)
 
     private val _stateFlow = MutableStateFlow(0)
     val stateFlow = _stateFlow.asStateFlow()
@@ -26,14 +29,14 @@ class MainViewModel : ViewModel() {
     val sharedFlow = _sharedFlow.asSharedFlow()
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(dispatchers.main) {
             sharedFlow.collect {
                 delay(2000L)
                 println("FIRST FLOW: The received number is $it")
             }
         }
 
-        viewModelScope.launch {
+        viewModelScope.launch(dispatchers.main) {
             sharedFlow.collect {
                 delay(3000L)
                 println("SECOND FLOW: The received number is $it")
@@ -46,8 +49,8 @@ class MainViewModel : ViewModel() {
         _stateFlow.value += 1
     }
 
-    private fun squaredNumber(number: Int) {
-        viewModelScope.launch {
+    fun squaredNumber(number: Int) {
+        viewModelScope.launch(dispatchers.main) {
             _sharedFlow.emit(number * number)
         }
     }
